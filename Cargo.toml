@@ -4,4 +4,6 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-iced = { git = "https://github.com/iced-rs/iced.git", rev = "refs/tags/text-editor" }
+iced = { git = "https://github.com/iced-rs/iced.git", rev = "refs/tags/text-editor", features = [
+    "debug", # after `cargo run`, press f12 to see the debug window
+] }
