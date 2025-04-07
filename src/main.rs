@@ -2,6 +2,7 @@ use iced::highlighter::{self, Highlighter};
 use iced::widget::{
     button, column, container, horizontal_space, pick_list, row, text, text_editor, tooltip,
 };
+use iced::window::icon;
 use iced::{
     Application, Command, Element, Font, Length, Settings, Subscription, Theme, executor, keyboard,
     theme,
@@ -12,7 +13,17 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 fn main() -> iced::Result {
+    let icon = icon::from_file_data(
+        include_bytes!("../assets/icon.png"),
+        None,
+    )
+    .ok();
+
     Editor::run(Settings {
+        window: iced::window::Settings {
+            icon,
+            ..iced::window::Settings::default()
+        },
         default_font: Font::MONOSPACE,
         fonts: vec![
             include_bytes!("../fonts/editor-icons.ttf")
@@ -137,6 +148,14 @@ impl Application for Editor {
             keyboard::KeyCode::Tab => Some(Message::Edit(text_editor::Action::Edit(
                 text_editor::Edit::Insert('\t'),
             ))),
+            keyboard::KeyCode::Equals if modifiers.command() => {
+                // TODO: implement zoom in
+                Some(Message::TabSizeSelected(4))
+            }
+            keyboard::KeyCode::Minus if modifiers.command() => {
+                // TODO: implement zoom out
+                Some(Message::TabSizeSelected(2))
+            }
             _ => None,
         })
     }
@@ -254,7 +273,7 @@ fn icon<'a, Message>(codepoint: char) -> Element<'a, Message> {
 }
 
 fn default_path() -> PathBuf {
-    PathBuf::from(format!("{}/src/main.rs", env!("CARGO_MANIFEST_DIR")))
+    PathBuf::from(format!("{}/test/test.cpp", env!("CARGO_MANIFEST_DIR")))
 }
 
 async fn pick_file() -> Result<(PathBuf, Arc<String>), Error> {

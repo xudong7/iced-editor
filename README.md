@@ -16,7 +16,7 @@ A minimalist text editor built with Iced, a cross-platform GUI library for the R
 
 ## Screenshot
 
-![Editor Screenshot](screenshots/editor.png)
+![Editor Screenshot](/assets/screenshot.png)
 
 ## System Requirements
 

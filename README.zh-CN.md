@@ -16,7 +16,7 @@
 
 ## 截图
 
-![编辑器截图](screenshots/editor.png)
+![编辑器截图](/assets/screenshot.png)
 
 ## 系统要求
 

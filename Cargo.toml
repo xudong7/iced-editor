@@ -8,6 +8,7 @@ description = "A simple text editor built with Iced"
 [dependencies]
 iced = { git = "https://github.com/iced-rs/iced.git", rev = "refs/tags/text-editor", features = [
     "debug", # after `cargo run`, press f12 to see the debug window
+    "image", # image support
     "highlighter", # syntax highlighting
 ] }
 
