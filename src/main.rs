@@ -1,3 +1,4 @@
+use iced::highlighter::{self, Highlighter};
 use iced::widget::{button, column, container, horizontal_space, row, text, text_editor, tooltip};
 use iced::{Application, Command, Element, Font, Length, Settings, Theme, executor, theme};
 
@@ -7,6 +8,7 @@ use std::sync::Arc;
 
 fn main() -> iced::Result {
     Editor::run(Settings {
+        default_font: Font::MONOSPACE,
         fonts: vec![
             include_bytes!("../fonts/editor-icons.ttf")
                 .as_slice()
@@ -104,7 +106,20 @@ impl Application for Editor {
         .spacing(10);
 
         // text input
-        let input = text_editor(&self.content).on_edit(Message::Edit);
+        let input = text_editor(&self.content)
+            .on_edit(Message::Edit)
+            .highlight::<Highlighter>(
+                highlighter::Settings {
+                    theme: highlighter::Theme::SolarizedDark,
+                    extension: self
+                        .path
+                        .as_ref()
+                        .and_then(|path| path.extension()?.to_str())
+                        .unwrap_or("rs")
+                        .to_string(),
+                },
+                |highlight, _theme| highlight.to_format(),
+            );
 
         // status bar
         let status_bar = {

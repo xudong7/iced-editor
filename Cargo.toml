@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 iced = { git = "https://github.com/iced-rs/iced.git", rev = "refs/tags/text-editor", features = [
     "debug", # after `cargo run`, press f12 to see the debug window
+    "highlighter", # syntax highlighting
 ] }
 
 tokio = { version = "1.32", features = ["fs"] }
