@@ -71,7 +71,12 @@ impl Application for Editor {
                 self.is_dirty = self.is_dirty || action.is_edit();
                 self.error = None;
 
-                self.content.edit(action);
+                if let text_editor::Action::Edit(text_editor::Edit::Insert('\t')) = &action {
+                    self.content
+                        .edit(text_editor::Action::Edit(text_editor::Edit::Insert(' ')));
+                } else {
+                    self.content.edit(action.clone());
+                }
 
                 Command::none()
             }
@@ -119,6 +124,9 @@ impl Application for Editor {
     fn subscription(&self) -> Subscription<Message> {
         keyboard::on_key_press(|key_code, modifiers| match key_code {
             keyboard::KeyCode::S if modifiers.command() => Some(Message::Save),
+            keyboard::KeyCode::Tab => Some(Message::Edit(text_editor::Action::Edit(
+                text_editor::Edit::Insert('\t'),
+            ))),
             _ => None,
         })
     }
