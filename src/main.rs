@@ -29,6 +29,7 @@ struct Editor {
     error: Option<Error>,
     theme: highlighter::Theme,
     is_dirty: bool,
+    tab_size: usize,
 }
 
 #[derive(Debug, Clone)]
@@ -40,6 +41,7 @@ enum Message {
     Save,
     FileSaved(Result<PathBuf, Error>),
     ThemeSelected(highlighter::Theme),
+    TabSizeSelected(usize),
 }
 
 impl Application for Editor {
@@ -56,6 +58,7 @@ impl Application for Editor {
                 error: None,
                 theme: highlighter::Theme::SolarizedDark,
                 is_dirty: true,
+                tab_size: 2,
             },
             Command::perform(load_file(default_path()), Message::FileOpened),
         )
@@ -72,8 +75,11 @@ impl Application for Editor {
                 self.error = None;
 
                 if let text_editor::Action::Edit(text_editor::Edit::Insert('\t')) = &action {
-                    self.content
-                        .edit(text_editor::Action::Edit(text_editor::Edit::Insert(' ')));
+                    // insert spaces based on tab size
+                    for _ in 0..self.tab_size / 2 {
+                        self.content
+                            .edit(text_editor::Action::Edit(text_editor::Edit::Insert(' ')));
+                    }
                 } else {
                     self.content.edit(action.clone());
                 }
@@ -118,6 +124,10 @@ impl Application for Editor {
                 self.theme = theme;
                 Command::none()
             }
+            Message::TabSizeSelected(size) => {
+                self.tab_size = size;
+                Command::none()
+            }
         }
     }
 
@@ -141,11 +151,12 @@ impl Application for Editor {
                 self.is_dirty.then_some(Message::Save)
             ),
             horizontal_space(Length::Fill),
+            pick_list(vec![2, 4,], Some(self.tab_size), Message::TabSizeSelected),
             pick_list(
                 highlighter::Theme::ALL,
                 Some(self.theme),
                 Message::ThemeSelected
-            )
+            ),
         ]
         .spacing(10);
 
