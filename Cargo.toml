@@ -7,3 +7,6 @@ edition = "2024"
 iced = { git = "https://github.com/iced-rs/iced.git", rev = "refs/tags/text-editor", features = [
     "debug", # after `cargo run`, press f12 to see the debug window
 ] }
+
+tokio = { version = "1.32", features = ["fs"] }
+rfd = "0.12.0"
