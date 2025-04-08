@@ -42,6 +42,9 @@ enum Message {
     EnableTab,
     ZoomIn,
     ZoomOut,
+    SelectLine,
+    SelectWord,
+    SelectAll,
 }
 
 impl Editor {
@@ -156,6 +159,24 @@ impl Editor {
 
                 Task::none()
             }
+            Message::SelectLine => {
+                let action = text_editor::Action::SelectLine;
+                self.content.perform(action);
+
+                Task::none()
+            }
+            Message::SelectWord => {
+                let action = text_editor::Action::SelectWord;
+                self.content.perform(action);
+
+                Task::none()
+            }
+            Message::SelectAll => {
+                let action = text_editor::Action::SelectAll;
+                self.content.perform(action);
+
+                Task::none()
+            }
         }
     }
 
@@ -240,6 +261,15 @@ impl Editor {
                         }
                         keyboard::Key::Character("-") if key_press.modifiers.command() => {
                             Some(text_editor::Binding::Custom(Message::ZoomOut))
+                        }
+                        keyboard::Key::Character("l") if key_press.modifiers.command() => {
+                            Some(text_editor::Binding::Custom(Message::SelectLine))
+                        }
+                        keyboard::Key::Character("d") if key_press.modifiers.command() => {
+                            Some(text_editor::Binding::Custom(Message::SelectWord))
+                        }
+                        keyboard::Key::Character("a") if key_press.modifiers.command() => {
+                            Some(text_editor::Binding::Custom(Message::SelectAll))
                         }
                         _ => text_editor::Binding::from_key_press(key_press),
                     }
