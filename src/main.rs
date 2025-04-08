@@ -38,6 +38,7 @@ enum Message {
     FileOpened(Result<(PathBuf, Arc<String>), Error>),
     SaveFile,
     FileSaved(Result<PathBuf, Error>),
+    EnableTab,
 }
 
 impl Editor {
@@ -116,12 +117,6 @@ impl Editor {
 
                     let text = self.content.text();
 
-                    // if let Some(ending) = self.content {
-                    //     if !text.ends_with(ending.as_str()) {
-                    //         text.push_str(ending.as_str());
-                    //     }
-                    // }
-
                     Task::perform(save_file(self.file.clone(), text), Message::FileSaved)
                 }
             }
@@ -131,6 +126,16 @@ impl Editor {
                 if let Ok(path) = result {
                     self.file = Some(path);
                     self.is_dirty = false;
+                }
+
+                Task::none()
+            }
+            Message::EnableTab => {
+                let action = text_editor::Action::Edit(text_editor::Edit::Insert(' '));
+                
+                self.is_dirty = true;
+                for _ in 0..4 {
+                    self.content.perform(action.clone());
                 }
 
                 Task::none()
@@ -209,6 +214,9 @@ impl Editor {
                     match key_press.key.as_ref() {
                         keyboard::Key::Character("s") if key_press.modifiers.command() => {
                             Some(text_editor::Binding::Custom(Message::SaveFile))
+                        }
+                        keyboard::Key::Named(keyboard::key::Named::Tab) => {
+                            Some(text_editor::Binding::Custom(Message::EnableTab))
                         }
                         _ => text_editor::Binding::from_key_press(key_press),
                     }
