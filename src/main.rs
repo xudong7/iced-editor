@@ -26,6 +26,7 @@ struct Editor {
     word_wrap: bool,
     is_loading: bool,
     is_dirty: bool,
+    font_size: usize,
 }
 
 #[derive(Debug, Clone)]
@@ -39,6 +40,8 @@ enum Message {
     SaveFile,
     FileSaved(Result<PathBuf, Error>),
     EnableTab,
+    ZoomIn,
+    ZoomOut,
 }
 
 impl Editor {
@@ -51,6 +54,7 @@ impl Editor {
                 word_wrap: true,
                 is_loading: true,
                 is_dirty: false,
+                font_size: 14,
             },
             Task::batch([
                 Task::perform(
@@ -132,10 +136,22 @@ impl Editor {
             }
             Message::EnableTab => {
                 let action = text_editor::Action::Edit(text_editor::Edit::Insert(' '));
-                
+
                 self.is_dirty = true;
                 for _ in 0..4 {
                     self.content.perform(action.clone());
+                }
+
+                Task::none()
+            }
+            Message::ZoomIn => {
+                self.font_size += 2;
+
+                Task::none()
+            }
+            Message::ZoomOut => {
+                if self.font_size > 2 {
+                    self.font_size -= 2;
                 }
 
                 Task::none()
@@ -187,7 +203,7 @@ impl Editor {
             text({
                 let (line, column) = self.content.cursor_position();
 
-                format!("{}:{}", line + 1, column + 1)
+                format!("{}:{} | {}pt", line + 1, column + 1, self.font_size)
             })
         ]
         .spacing(10);
@@ -195,6 +211,7 @@ impl Editor {
         column![
             controls,
             text_editor(&self.content)
+                .size(self.font_size as u16)
                 .height(Fill)
                 .on_action(Message::ActionPerformed)
                 .wrapping(if self.word_wrap {
@@ -217,6 +234,12 @@ impl Editor {
                         }
                         keyboard::Key::Named(keyboard::key::Named::Tab) => {
                             Some(text_editor::Binding::Custom(Message::EnableTab))
+                        }
+                        keyboard::Key::Character("=") if key_press.modifiers.command() => {
+                            Some(text_editor::Binding::Custom(Message::ZoomIn))
+                        }
+                        keyboard::Key::Character("-") if key_press.modifiers.command() => {
+                            Some(text_editor::Binding::Custom(Message::ZoomOut))
                         }
                         _ => text_editor::Binding::from_key_press(key_press),
                     }
