@@ -27,6 +27,8 @@ struct Editor {
     is_loading: bool,
     is_dirty: bool,
     font_size: usize,
+    history: Vec<String>,
+    history_index: usize,
 }
 
 #[derive(Debug, Clone)]
@@ -45,6 +47,7 @@ enum Message {
     SelectLine,
     SelectWord,
     SelectAll,
+    Withdraw,
 }
 
 impl Editor {
@@ -58,6 +61,8 @@ impl Editor {
                 is_loading: true,
                 is_dirty: false,
                 font_size: 14,
+                history: vec![String::new()],
+                history_index: 0,
             },
             Task::batch([
                 Task::perform(
@@ -73,6 +78,17 @@ impl Editor {
         match message {
             Message::ActionPerformed(action) => {
                 self.is_dirty = self.is_dirty || action.is_edit();
+
+                if action.is_edit() {
+                    let current_text = self.content.text();
+
+                    if self.history_index < self.history.len() - 1 {
+                        self.history.truncate(self.history_index + 1);
+                    }
+
+                    self.history.push(current_text);
+                    self.history_index = self.history.len() - 1;
+                }
 
                 self.content.perform(action);
 
@@ -112,6 +128,10 @@ impl Editor {
                 if let Ok((path, contents)) = result {
                     self.file = Some(path);
                     self.content = text_editor::Content::with_text(&contents);
+
+                    // reset history
+                    self.history = vec![contents.to_string()];
+                    self.history_index = 0;
                 }
 
                 Task::none()
@@ -174,6 +194,20 @@ impl Editor {
             Message::SelectAll => {
                 let action = text_editor::Action::SelectAll;
                 self.content.perform(action);
+
+                Task::none()
+            }
+            Message::Withdraw => {
+                if self.history_index > 0 {
+                    self.history_index -= 1;
+                    let previous_state = &self.history[self.history_index];
+
+                    self.content = text_editor::Content::with_text(previous_state);
+
+                    // TODO: Update cursor position
+
+                    self.is_dirty = true;
+                }
 
                 Task::none()
             }
@@ -270,6 +304,9 @@ impl Editor {
                         }
                         keyboard::Key::Character("a") if key_press.modifiers.command() => {
                             Some(text_editor::Binding::Custom(Message::SelectAll))
+                        }
+                        keyboard::Key::Character("z") if key_press.modifiers.command() => {
+                            Some(text_editor::Binding::Custom(Message::Withdraw))
                         }
                         _ => text_editor::Binding::from_key_press(key_press),
                     }
